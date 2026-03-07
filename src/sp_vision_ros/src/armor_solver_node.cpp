@@ -109,6 +109,8 @@ void ArmorSolverNode::armors_callback(const sp_vision_msgs::msg::Armors::SharedP
     //                  "gimbal_link",
     //                  "target_link");
 
+    std::cerr << "111111111111111111111111" << std::endl;
+
     if (!targets.empty())
     {
         target_queue_.push(targets.front());
@@ -275,7 +277,7 @@ void ArmorSolverNode::planner_loop()
 
                 cmd_pub_->publish(gimbal_cmd);
                 //tools::logger()->debug("[ArmorSolver] 发布控制命令: yaw={:.2f}, pitch={:.2f}, fire={}",
-               //                        plan.yaw, plan.pitch, plan.fire);
+                //                        plan.yaw, plan.pitch, plan.fire);
             }
 
             std::this_thread::sleep_for(10ms);
