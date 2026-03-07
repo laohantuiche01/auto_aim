@@ -1,0 +1,16 @@
+gimbal_node:
+  ros__parameters:
+    # CBoard 参数
+    quaternion_canid: 256  # 0x100
+    bullet_speed_canid: 257  # 0x101
+    send_canid: 255  # 0xff
+    can_interface: "can0"
+
+    # 串口参数
+    com_port: "/dev/ttyACM0"
+
+    # PID 参数
+    yaw_kp: 0.0
+    yaw_kd: 0.0
+    pitch_kp: 0.0
+    pitch_kd: 0.0

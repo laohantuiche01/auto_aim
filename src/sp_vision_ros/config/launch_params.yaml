@@ -1,0 +1,14 @@
+
+# SP Vision ROS Launch 参数配置
+# 用于 sp_vision_bringup.launch.py
+
+/**:
+  ros__parameters:
+    # 配置文件路径 (算法参数，相对或绝对路径)
+    # 示例: "/home/baiye/temp/sp_vision_ros_ws/src/sp_vision_ros/config/example.yaml"
+    config_path: ""
+
+    # 是否使用模拟器模式
+    # true: 只启动 auto_aim_node，使用 Godot 模拟器的 topics (/tf, /camera/image_raw)
+    # false: 启动全部节点 (camera_node + gimbal_node + auto_aim_node)
+    use_simulator: false

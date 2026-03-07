@@ -1,0 +1,45 @@
+armor_solver:
+  ros__parameters:
+    # 敌方颜色
+    enemy_color: "blue"  # red, blue
+
+    # Tracker 参数
+    min_detect_count: 5
+    max_temp_lost_count: 15
+    outpost_max_temp_lost_count: 75
+
+    # Aimer 参数
+    yaw_offset: 0.0  # degree
+    pitch_offset: 4.0  # degree
+    comming_angle: 55.0  # degree
+    leaving_angle: 20.0  # degree
+    decision_speed: 7.0  # rad/s
+    high_speed_delay_time: 0.04  # s
+    low_speed_delay_time: 0.04  # s
+
+    # Shooter 参数
+    first_tolerance: 3.0  # degree
+    second_tolerance: 2.0  # degree
+    judge_distance: 2.0
+    auto_fire: true
+
+    # Planner 参数
+    fire_thresh: 0.0035
+
+    # Planner Yaw
+    max_yaw_acc: 50.0
+    Q_yaw: [ 9000000.0, 0.0 ]
+    R_yaw: [ 1.0 ]
+
+    # Planner Pitch
+    max_pitch_acc: 100.0
+    Q_pitch: [ 9000000.0, 0.0 ]
+    R_pitch: [ 1.0 ]
+
+    # 相机标定参数
+    R_gimbal2imubody: [ 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 ]
+    camera_matrix: [ 1809.4822355031245, 0.0, 697.14569994150293, 0.0, 1809.4809037947414, 571.90685201331121, 0.0, 0.0, 1.0 ]
+    distort_coeffs: [ -0.081190039023144409, 0.19231523391750371, 0.00096216291015417384, -0.00049720732747006446, 0.0 ]
+    #R_camera2gimbal: [-0.027182119030230909, -0.12616154330853446, 0.99163723074269183, -0.99949106557517331, 0.019998323121329122, -0.024853106601381177, -0.016695575474690555, -0.99180811252093692, -0.12664093215554434]
+    R_camera2gimbal: [ 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 ]
+    t_camera2gimbal: [ -0.18301755922179547, -0.0070579365371973915, 0.031873960507270753 ]
