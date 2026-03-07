@@ -13,6 +13,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <tf2_ros/transform_listener.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/buffer.h>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 
@@ -52,6 +53,33 @@ private:
     // 从 TF 获取云台姿态
     Eigen::Quaterniond get_gimbal_orientation(const rclcpp::Time & stamp);
 
+    //调试发布特定矩阵
+    void publishTransform(
+        const Eigen::Quaterniond& q,
+        const Eigen::Vector3d& t,
+        const std::string& frame_id,
+        const std::string& child_frame_id,
+        const rclcpp::Time& timestamp = rclcpp::Time());
+
+    //调试坐标系重载
+    void publishTransform(
+        const Eigen::Matrix3d& R,
+        const Eigen::Vector3d& t,
+        const std::string& frame_id,
+        const std::string& child_frame_id,
+        const rclcpp::Time& timestamp = rclcpp::Time());
+
+    //yaw pitch roll重载
+    void publishTransform(
+        double roll,
+        double pitch,
+        double yaw,
+        const Eigen::Vector3d& t,
+        const std::string& frame_id,
+        const std::string& child_frame_id,
+        const rclcpp::Time& timestamp = rclcpp::Time());
+
+
     // 算法模块 - Solver + Tracker + Planner
     std::unique_ptr<auto_aim::Solver> solver_;
     std::unique_ptr<auto_aim::Tracker> tracker_;
@@ -82,6 +110,8 @@ private:
     rclcpp::Subscription<sp_vision_msgs::msg::Armors>::SharedPtr armors_sub_;
     rclcpp::Subscription<sp_vision_msgs::msg::GimbalState>::SharedPtr gimbal_state_sub_;
     rclcpp::Publisher<sp_vision_msgs::msg::GimbalCmd>::SharedPtr cmd_pub_;
+
+    std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
     // 动态参数回调句柄
     rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_handle_;
