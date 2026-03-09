@@ -41,7 +41,7 @@ void AutoAimNode::declare_all_parameters() {
     this->declare_parameter("yolo11_model_path", "/home/laohantuiche/Radar/auto_aim/src/sp_vision_ros/assets/yolo11.xml");
 
     // 设备和阈值
-    this->declare_parameter("device", "CPU");
+    this->declare_parameter("device", "GPU");
     this->declare_parameter("threshold", 0.6);
     this->declare_parameter("min_confidence", 0.5);
 
@@ -80,8 +80,8 @@ rcl_interfaces::msg::SetParametersResult AutoAimNode::param_callback(
 void AutoAimNode::image_callback(const sensor_msgs::msg::Image::UniquePtr &img_msg) {
     tools::logger()->debug("[AutoAimNode] 收到图像: {}x{}", img_msg->width, img_msg->height);
 
-    cv::Mat img = cv_bridge::toCvCopy(*img_msg, img_msg->encoding)->image;
-    cv::cvtColor(img,img,cv::COLOR_RGB2BGR);
+    //cv::Mat img = cv_bridge::toCvCopy(*img_msg, img_msg->encoding)->image;
+    cv::Mat img = cv_bridge::toCvCopy(*img_msg, "rgb8")->image;
 
     // YOLO 检测
     auto armors = yolo_->detect(img);
@@ -96,6 +96,15 @@ void AutoAimNode::image_callback(const sensor_msgs::msg::Image::UniquePtr &img_m
     for (const auto & armor : armors) {
         armors_msg.armors.push_back(armor_to_msg(armor));
     }
+
+    // if (armors_msg.armors.size() == 1)
+    // {
+    //     cv::circle(img,armors.front().center_norm,
+    //         10,{0,0,255},-1);
+    // }
+    // cv::imshow("111",img);
+    // cv::waitKey(1);
+
 
     armors_pub_->publish(armors_msg);
     tools::logger()->debug("[AutoAimNode] 发布 /detected_armors: {} 个装甲板", armors_msg.armors.size());

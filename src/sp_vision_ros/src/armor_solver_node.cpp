@@ -5,6 +5,8 @@
 #include "../include/sp_vision_ros/armor_solver_node.h"
 #include <tf2_eigen/tf2_eigen.hpp>
 
+#include "img_tools.hpp"
+
 using namespace std::chrono_literals;
 
 ArmorSolverNode::ArmorSolverNode(const rclcpp::NodeOptions& options)
@@ -13,6 +15,9 @@ ArmorSolverNode::ArmorSolverNode(const rclcpp::NodeOptions& options)
       quit_(false)
 {
     tools::logger()->info("ArmorSolverNode (后端处理) 已启动");
+
+    RosTimer::init(this); //TO
+    KalmanDebug::get_instance().init(this);
 
     // 声明所有参数
     declare_all_parameters();
@@ -25,7 +30,7 @@ ArmorSolverNode::ArmorSolverNode(const rclcpp::NodeOptions& options)
     target_queue_.push(std::nullopt);
 
     // 初始化 TF
-    tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+    tf_buffer_ = std::make_shared<tf2_ros::Buffer>(RosTimer::get_ros_clock(),std::chrono::microseconds(100));
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
     tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
@@ -50,6 +55,16 @@ ArmorSolverNode::ArmorSolverNode(const rclcpp::NodeOptions& options)
 
     // 启动规划线程
     planner_thread_ = std::thread(&ArmorSolverNode::planner_loop, this);
+
+
+    image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
+        "camera/image_raw", 10,
+        [this](
+        const sensor_msgs::msg::Image::ConstSharedPtr msg)
+        {
+            image_ = cv_bridge::toCvCopy(*msg, msg->encoding)->image;
+        }
+    );
 }
 
 ArmorSolverNode::~ArmorSolverNode()
@@ -87,7 +102,7 @@ void ArmorSolverNode::armors_callback(const sp_vision_msgs::msg::Armors::SharedP
     }
 
     // 获取云台姿态
-    auto q = get_gimbal_orientation(armors_msg->header.stamp);
+    auto q = get_gimbal_orientation(RosTimer::get_ros_time());
     solver_->set_R_gimbal2world(q);
 
     // 转换消息为 Armor
@@ -95,21 +110,23 @@ void ArmorSolverNode::armors_callback(const sp_vision_msgs::msg::Armors::SharedP
 
     // 将 ROS 时间直接转换成 steady_clock
     // 注意：偏移量会在 dt 计算中抵消，所以直接转换即可
-    auto ros_time = rclcpp::Time(armors_msg->header.stamp);
-    auto t = std::chrono::steady_clock::time_point(
-        std::chrono::nanoseconds(ros_time.nanoseconds()));
+    auto ros_time = rclcpp::Time(RosTimer::get_ros_time());
+    auto t = std::chrono::steady_clock::time_point(RosTimer::get_steady_time_from_clock());
+
+    RCLCPP_INFO(this->get_logger(),"time_point   %.9f" ,RosTimer::steady_time_to_double_seconds(t));
+    RCLCPP_INFO(this->get_logger(),"ros_time     %.9f" ,RosTimer::ros_time_to_double_seconds(ros_time));
 
     // Tracker 处理
     auto targets = tracker_->track(armors, t);
+
+    KalmanDebug::get_instance().publish(targets.front().ekf_x(),"ekf_state");
 
     // publishTransform(armors.front().ypr_in_gimbal(0),
     //                  armors.front().ypr_in_gimbal(1),
     //                  armors.front().ypr_in_gimbal(2),
     //                  armors.front().xyz_in_gimbal,
     //                  "gimbal_link",
-    //                  "target_link");
-
-    std::cerr << "111111111111111111111111" << std::endl;
+    //                  "target_link")
 
     if (!targets.empty())
     {
@@ -144,7 +161,8 @@ std::list<auto_aim::Armor> ArmorSolverNode::msg_to_armors(const sp_vision_msgs::
 
         // 使用 Armor 构造函数创建对象
         // 构造函数会根据 class_id 自动设置 color, name, type
-        auto_aim::Armor armor(armor_msg.class_id, 0.0f, cv::Rect(), keypoints);
+        //auto_aim::Armor armor(armor_msg.class_id, 0.0f, cv::Rect(), keypoints);
+        auto_aim::Armor armor(9, 0.0f, cv::Rect(), keypoints);
 
         armors.push_back(armor);
     }
@@ -276,9 +294,28 @@ void ArmorSolverNode::planner_loop()
                 gimbal_cmd.pitch_vel = plan.pitch_vel;
 
                 cmd_pub_->publish(gimbal_cmd);
-                //tools::logger()->debug("[ArmorSolver] 发布控制命令: yaw={:.2f}, pitch={:.2f}, fire={}",
-                //                        plan.yaw, plan.pitch, plan.fire);
+                tools::logger()->debug("[ArmorSolver] 发布控制命令: yaw={:.2f}, pitch={:.2f}, fire={}",
+                                       plan.yaw, plan.pitch, plan.fire);
             }
+
+            auto armor_xyza_list = target_opt->armor_xyza_list();
+            for (auto& xyza : armor_xyza_list)
+            {
+                auto image_points = solver_->reproject_armor(xyza.head(3), xyza[3], target_opt->armor_type,
+                                                             target_opt->name);
+                tools::draw_points(image_, image_points, {0, 255, 0});
+            }
+            Eigen::Vector4d aim_xyza = planner_->debug_xyza;
+            auto image_points = solver_->reproject_armor(aim_xyza.head(3), aim_xyza[3], target_opt->armor_type,
+                                                         target_opt->name);
+            tools::draw_points(image_, image_points, {0, 0, 255});
+
+            if (!image_.empty())
+            {
+                imshow("armor", image_);
+                cv::waitKey(10);
+            }
+
 
             std::this_thread::sleep_for(10ms);
         }

@@ -16,6 +16,8 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/buffer.h>
 #include <geometry_msgs/msg/transform_stamped.hpp>
+#include <sensor_msgs/msg/detail/compressed_image__builder.hpp>
+#include <sensor_msgs/msg/detail/image__struct.hpp>
 
 #include "sp_vision_msgs/msg/gimbal_state.hpp"
 #include "sp_vision_msgs/msg/gimbal_cmd.hpp"
@@ -29,8 +31,13 @@
 #include "io/gimbal/gimbal.hpp"
 #include "tools/thread_safe_queue.hpp"
 #include "tools/logger.hpp"
+#include "tools/timer.hpp"
+#include "tools/kalman_debug.hpp"
 
-class ArmorSolverNode : public rclcpp::Node {
+#include "cv_bridge/cv_bridge.h"
+
+class ArmorSolverNode : public rclcpp::Node
+{
 public:
     ArmorSolverNode(const rclcpp::NodeOptions & options);
     ~ArmorSolverNode();
@@ -111,7 +118,13 @@ private:
     rclcpp::Subscription<sp_vision_msgs::msg::GimbalState>::SharedPtr gimbal_state_sub_;
     rclcpp::Publisher<sp_vision_msgs::msg::GimbalCmd>::SharedPtr cmd_pub_;
 
+
+    // debug 接口
     std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_sub_;
+
+    cv::Mat image_;
+
 
     // 动态参数回调句柄
     rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_handle_;

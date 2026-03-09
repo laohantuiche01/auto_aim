@@ -7,6 +7,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 
 add_subdirectory(serial)
+#add_subdirectory(serialPro)
 
 # 创建目标 io
 add_library(io STATIC

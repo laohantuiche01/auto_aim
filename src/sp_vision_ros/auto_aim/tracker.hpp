@@ -12,6 +12,7 @@
 #include "target.hpp"
 // #include "tasks/omniperception/perceptron.hpp"  // TODO: omniperception module not found
 #include "tools/thread_safe_queue.hpp"
+#include "tools/timer.hpp"
 
 namespace auto_aim
 {
