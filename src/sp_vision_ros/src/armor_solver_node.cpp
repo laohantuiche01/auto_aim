@@ -6,6 +6,7 @@
 #include <tf2_eigen/tf2_eigen.hpp>
 
 #include "img_tools.hpp"
+#include "serialPro/robotComm.h"
 
 using namespace std::chrono_literals;
 
@@ -16,7 +17,7 @@ ArmorSolverNode::ArmorSolverNode(const rclcpp::NodeOptions& options)
 {
     tools::logger()->info("ArmorSolverNode (后端处理) 已启动");
 
-    RosTimer::init(this); //TO
+    RosTimer::init(this); //TODO
     KalmanDebug::get_instance().init(this);
 
     // 声明所有参数
@@ -119,7 +120,8 @@ void ArmorSolverNode::armors_callback(const sp_vision_msgs::msg::Armors::SharedP
     // Tracker 处理
     auto targets = tracker_->track(armors, t);
 
-    KalmanDebug::get_instance().publish(targets.front().ekf_x(),"ekf_state");
+    auto send_data = 114514.0;
+    KalmanDebug::get_instance().publish(send_data,"ekf_state");
 
     // publishTransform(armors.front().ypr_in_gimbal(0),
     //                  armors.front().ypr_in_gimbal(1),

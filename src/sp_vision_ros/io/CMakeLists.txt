@@ -7,7 +7,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 
 add_subdirectory(serial)
-#add_subdirectory(serialPro)
+add_subdirectory(serialPro)
 
 # 创建目标 io
 add_library(io STATIC
@@ -40,7 +40,7 @@ else()
   message(FATAL_ERROR "Unsupported architecture: ${CMAKE_HOST_SYSTEM_PROCESSOR}!")
 endif()
 
-target_link_libraries(io MvCameraControl MVSDK usb-1.0 yaml-cpp serial fmt::fmt tools ${OpenCV_LIBS})
+target_link_libraries(io MvCameraControl MVSDK usb-1.0 yaml-cpp serial serialPro fmt::fmt tools ${OpenCV_LIBS})
 
 # Include directories for project headers
 target_include_directories(io PUBLIC

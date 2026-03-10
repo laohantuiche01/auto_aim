@@ -14,6 +14,14 @@
 #include <vector>
 #include <mutex>
 
+template <typename T>
+struct is_std_vector : std::false_type {};
+
+template <typename T>
+struct is_std_vector<std::vector<T>> : std::true_type {};
+
+template <typename T>
+constexpr bool is_std_vector_v = is_std_vector<T>::value;
 
 class KalmanDebug
 {
@@ -62,24 +70,34 @@ public:
         }
 
         std_msgs::msg::Float64MultiArray msg;
-        if constexpr (std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>>)
+        using DecayedT = std::decay_t<T>;
+
+        if constexpr (std::is_base_of_v<Eigen::EigenBase<DecayedT>, DecayedT>)
         {
             fill_msg(data, msg); // Eigen类型
         }
-        else if constexpr (std::is_same_v<std::decay_t<T>, std::vector<typename T::value_type>>)
+        else if constexpr (is_std_vector_v<DecayedT>)
         {
             fill_msg(data, msg); // std::vector类型
         }
-        else if constexpr (std::is_arithmetic_v<std::decay_t<T>>)
+        else if constexpr (std::is_arithmetic_v<DecayedT>)
         {
-            fill_single_val(data, msg); // 单个数值
+            fill_msg(data, msg); // 单个数值
         }
         else
         {
             RCLCPP_ERROR(rclcpp::get_logger("KalmanDebug"), "Unsupported data type!");
             return;
         }
-        pub_map_[full_topic]->publish(msg);
+        auto pub = pub_map_[full_topic];
+        if (pub)
+        {
+            pub->publish(msg);
+        }
+        else
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("KalmanDebug"), "Publisher for topic %s is null!", full_topic.c_str());
+        }
     }
 
     /**
@@ -123,6 +141,7 @@ private:
     template <typename T>
     void fill_msg(const std::vector<T>& data, std_msgs::msg::Float64MultiArray& msg)
     {
+        static_assert(std::is_arithmetic_v<T>, "Vector must contain arithmetic types (int/double/float etc.)!");
         msg.data.reserve(data.size());
         for (const auto& val : data)
         {

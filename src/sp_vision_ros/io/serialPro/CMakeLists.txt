@@ -11,12 +11,18 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_BUILD_TYPE Debug)
 
-include_directories(include msg_serializer thirdparty/serialib)
-
-add_subdirectory(thirdparty/serialib)
-
-add_library(serialPro STATIC
-        src/msg_serializer.cpp
-        src/robot_serial.cpp
-        src/referee_serial.cpp
+add_subdirectory(
+        thirdparty/serialib
 )
+
+add_library(serialPro
+        src/RobotComm.cpp
+)
+
+target_include_directories(serialPro PUBLIC
+        include
+        ${CMAKE_CURRENT_SOURCE_DIR}/msg_serializer
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/serialib
+)
+
+target_link_libraries(serialPro PUBLIC serialib)
