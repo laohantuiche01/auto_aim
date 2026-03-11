@@ -81,7 +81,7 @@ void AutoAimNode::image_callback(const sensor_msgs::msg::Image::UniquePtr &img_m
     tools::logger()->debug("[AutoAimNode] 收到图像: {}x{}", img_msg->width, img_msg->height);
 
     //cv::Mat img = cv_bridge::toCvCopy(*img_msg, img_msg->encoding)->image;
-    cv::Mat img = cv_bridge::toCvCopy(*img_msg, "rgb8")->image;
+    cv::Mat img = cv_bridge::toCvCopy(*img_msg, "bgr8")->image;
 
     // YOLO 检测
     auto armors = yolo_->detect(img);

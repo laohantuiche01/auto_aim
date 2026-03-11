@@ -25,15 +25,15 @@ CameraNode::CameraNode(const rclcpp::NodeOptions & options)
 
 void CameraNode::declare_all_parameters() {
     // 相机类型
-    this->declare_parameter("camera_name", "mindvision");
+    this->declare_parameter("camera_name", "hikrobot");
 
     // MindVision 参数
-    this->declare_parameter("exposure_ms", 5000);
+    this->declare_parameter("exposure_ms", 5.0);
     this->declare_parameter("gamma", 1.0);
-    this->declare_parameter("vid_pid", "0483:7525");
+    this->declare_parameter("vid_pid", "2bdf:0001");
 
     // HikRobot 参数
-    this->declare_parameter("gain", 1.0);
+    this->declare_parameter("gain", 12.0);
 }
 
 rcl_interfaces::msg::SetParametersResult CameraNode::param_callback(
@@ -87,7 +87,7 @@ void CameraNode::publish_loop() {
             img_pub_->publish(std::move(msg));
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(30));  // ~30fps
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));  // ~30fps
     }
 }
 

@@ -21,6 +21,7 @@ add_library(serialPro
 
 target_include_directories(serialPro PUBLIC
         include
+        include/serialPro
         ${CMAKE_CURRENT_SOURCE_DIR}/msg_serializer
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/serialib
 )

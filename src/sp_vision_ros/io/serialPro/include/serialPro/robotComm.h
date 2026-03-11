@@ -72,6 +72,11 @@ namespace robot {
         bool write(uint8_t id, const T& t) {
             return sp::serialPro<head, tail>::write(head{.id=id}, t);
         }
+
+        void reopen()
+        {
+
+        }
     };
 }
 

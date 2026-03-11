@@ -12,12 +12,12 @@
 
 #include "serial/serial.h"
 #include "tools/thread_safe_queue.hpp"
+#include "serialPro/robotComm.h"
 
 namespace io
 {
-struct __attribute__((packed)) GimbalToVision
+message_data GimbalToVision
 {
-  uint8_t head[2] = {'S', 'P'};
   uint8_t mode;  // 0: 空闲, 1: 自瞄, 2: 小符, 3: 大符
   float q[4];    // wxyz顺序
   float yaw;
@@ -31,9 +31,8 @@ struct __attribute__((packed)) GimbalToVision
 
 static_assert(sizeof(GimbalToVision) <= 64);
 
-struct __attribute__((packed)) VisionToGimbal
+message_data VisionToGimbal
 {
-  uint8_t head[2] = {'S', 'P'};
   uint8_t mode;  // 0: 不控制, 1: 控制云台但不开火，2: 控制云台且开火
   float yaw;
   float yaw_vel;
@@ -41,7 +40,6 @@ struct __attribute__((packed)) VisionToGimbal
   float pitch;
   float pitch_vel;
   float pitch_acc;
-  uint16_t crc16;
 };
 
 static_assert(sizeof(VisionToGimbal) <= 64);
@@ -87,7 +85,9 @@ public:
   void update_param(const std::string & name, const rclcpp::Parameter & param);
 
 private:
-  serial::Serial serial_;
+  //serial::Serial serial_;
+
+  robot::RobotSerial serial_;
 
   std::thread thread_;
   std::atomic<bool> quit_ = false;
@@ -101,7 +101,7 @@ private:
   tools::ThreadSafeQueue<std::tuple<Eigen::Quaterniond, std::chrono::steady_clock::time_point>>
     queue_{1000};
 
-  bool read(uint8_t * buffer, size_t size);
+  void GimbalToVisionCallback(const GimbalToVision & data);
   void read_thread();
   void reconnect();
 };

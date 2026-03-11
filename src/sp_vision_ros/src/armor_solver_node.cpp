@@ -6,7 +6,6 @@
 #include <tf2_eigen/tf2_eigen.hpp>
 
 #include "img_tools.hpp"
-#include "serialPro/robotComm.h"
 
 using namespace std::chrono_literals;
 
@@ -164,7 +163,7 @@ std::list<auto_aim::Armor> ArmorSolverNode::msg_to_armors(const sp_vision_msgs::
         // 使用 Armor 构造函数创建对象
         // 构造函数会根据 class_id 自动设置 color, name, type
         //auto_aim::Armor armor(armor_msg.class_id, 0.0f, cv::Rect(), keypoints);
-        auto_aim::Armor armor(9, 0.0f, cv::Rect(), keypoints);
+        auto_aim::Armor armor(9, 0.0f, cv::Rect(), keypoints); //TODO   
 
         armors.push_back(armor);
     }
